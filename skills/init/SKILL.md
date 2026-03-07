@@ -1,30 +1,64 @@
 ---
 name: init
-description: Create or improve AGENTS.md by analyzing repository commands, architecture, and existing guidance files
+description: Create or refine a minimal, high-signal AGENTS.md with only non-discoverable repo guidance
 metadata:
-  tags: initialization, agents, onboarding, repository-analysis, documentation
+  tags: initialization, agents, context-engineering, agents-md, maintenance
 ---
 
 ## When to use
 
-Use this skill when you need to create an initial `AGENTS.md` for a repository, or improve an existing one for AI coding agents.
+Use this skill when creating or updating `AGENTS.md` for a repository.
+
+Use it especially when:
+- the current `AGENTS.md` is long, generic, or stale
+- agents repeatedly make the same avoidable mistakes
+- repository workflows changed and agent guidance needs pruning
 
 ## Instructions
 
-Analyze the repository and produce (or improve) an `AGENTS.md` file that gives future AI coding agents a concise, actionable operating guide.
+Treat `AGENTS.md` as a **living list of non-discoverable landmines and workflow gotchas**, not a codebase overview.
 
-### Required content
+### Core rule: discoverability filter
 
-1. Common development commands for this codebase:
-   - Build
-   - Lint
-   - Tests
-   - Running a single test
-   - Any additional commands required for normal development in this repository
+Before adding any line, ask:
 
-2. High-level architecture and structure:
-   - Focus on the big-picture organization that requires reading multiple files to understand
-   - Do not dump discoverable directory listings
+> Can an agent discover this by reading the repo (`README`, code, config, scripts, directory tree)?
+
+- If **yes**: do **not** include it in `AGENTS.md`.
+- If **no**, and it materially affects task success/cost/safety: include it.
+
+### What earns a line
+
+Include only guidance that is:
+1. **Non-discoverable** from repository files alone
+2. **Operationally significant** (changes commands, outcomes, or safety)
+3. **Actionable** (specific enough to execute)
+
+Typical examples:
+- Non-standard tooling choices (e.g. use `uv` instead of `pip`)
+- Command caveats (e.g. tests must run with `--no-cache` due to fixture behavior)
+- Hidden constraints/landmines (deprecated directories still imported in production)
+- Critical local conventions that are not encoded in lint/tests/config
+
+### What to remove or avoid
+
+Do **not** include:
+- Tech stack summaries
+- Directory structure overviews
+- Architecture descriptions agents can infer from code
+- Generic best-practice advice
+- Rules already enforced by tooling (linters, typecheck, tests, CI)
+- Mandatory boilerplate headers unless the repo explicitly requires one
+
+### Recommended structure
+
+Prefer short, high-signal sections such as:
+- `Scope & routing` (which areas need separate/module-local AGENTS files)
+- `Non-discoverable commands`
+- `Landmines / do-not-touch areas`
+- `Task-specific constraints`
+
+For large repos, recommend **hierarchical AGENTS.md** files near relevant modules instead of one monolithic root file.
 
 ### Source files to check first
 
@@ -34,21 +68,24 @@ Analyze the repository and produce (or improve) an `AGENTS.md` file that gives f
 - Cursor rules (`.cursor/rules/` or `.cursorrules`)
 - Copilot instructions (`.github/copilot-instructions.md`)
 - `GEMINI.md`
+- CI/workflow files and package manager config (for command/tooling mismatches)
 
-If `AGENTS.md` already exists, improve it instead of replacing it blindly.
+If `AGENTS.md` exists, improve it incrementally instead of replacing it blindly.
 
-### Mandatory header
+### Maintenance mindset
 
-Prefix `AGENTS.md` with this exact text:
+`AGENTS.md` is temporary guidance, not permanent configuration.
 
-```text
-This file provides guidance to AI coding agents like Claude Code (claude.ai/code), Cursor AI, Codex, Gemini CLI, GitHub Copilot, and other AI coding assistants when working with code in this repository.
-```
+When recurring issues appear:
+1. Prefer fixing the root cause in code/tooling (lint rule, test, script, structure)
+2. Keep only the minimum instruction needed until the root cause is solved
+3. Prune stale instructions aggressively
 
-### Constraints
+### Quality gate before finalizing
 
-- Keep guidance focused, specific, and scoped to the repository
-- Avoid generic best-practice filler
-- Do not invent sections or information not supported by repository files
-- Avoid repetition
-- Keep the document under 500 lines
+For each line in `AGENTS.md`, verify:
+- Is it non-discoverable?
+- Is it still accurate today?
+- Does it materially reduce mistakes/cost/time?
+
+Delete any line that fails one of these checks.
